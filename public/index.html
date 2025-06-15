@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyURL - URL Shortener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .auth-section {
+            margin-top: 20px;
+        }
+
+        .auth-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .user-section {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .welcome-text {
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-menu {
+            display: flex;
+            gap: 10px;
+        }
+
+        .main {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], input[type="url"], input[type="email"], input[type="password"], input[type="datetime-local"], select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .custom-code-group {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .custom-code-input {
+            flex: 1;
+        }
+
+        .toggle-custom, .toggle-advanced {
+            background: #f8f9fa;
+            border: 2px solid #e1e8ed;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toggle-custom:hover, .toggle-advanced:hover {
+            background: #e9ecef;
+        }
+
+        .toggle-custom.active, .toggle-advanced.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .advanced-section {
+            margin-bottom: 25px;
+        }
+
+        .advanced-options {
+            margin-top: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .bulk-section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f0f8ff;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .bulk-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .bulk-upload {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .bulk-btn, .download-template {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .bulk-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .bulk-btn:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .download-template {
+            background: #17a2b8;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        .download-template:hover {
+            background: #138496;
+        }
+
+        .bulk-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .shorten-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .shorten-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .shorten-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .bulk-result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e7f3ff;
+            border-radius: 10px;
+            display: none;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .bulk-result.show {
+            display: block;
+        }
+
+        .bulk-result h4, .bulk-result h5 {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .bulk-result ul {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .bulk-result li {
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .url-display {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .short-url {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 16px;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            min-width: 0;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .copy-btn.copied {
+            background: #17a2b8;
+        }
+
+        .stats-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .stats-link:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 5px solid #dc3545;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            max-width: 350px;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-left: 4px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left-color: #28a745;
+        }
+
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+
+        .toast.warning {
+            border-left-color: #ffc107;
+        }
+
+        .toast.info {
+            border-left-color: #17a2b8;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast-icon {
+            color: #28a745;
+        }
+
+        .toast.error .toast-icon {
+            color: #dc3545;
+        }
+
+        .toast.warning .toast-icon {
+            color: #ffc107;
+        }
+
+        .toast.info .toast-icon {
+            color: #17a2b8;
+        }
+
+        .toast-content {
+            flex: 1;
+            color: #333;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            color: #666;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(102, 126, 234, 0.3);
+            animation: toastProgress 4s linear forwards;
+        }
+
+        .toast.success .toast-progress {
+            background: rgba(40, 167, 69, 0.3);
+        }
+
+        .toast.error .toast-progress {
+            background: rgba(220, 53, 69, 0.3);
+        }
+
+        .toast.warning .toast-progress {
+            background: rgba(255, 193, 7, 0.3);
+        }
+
+        .toast.info .toast-progress {
+            background: rgba(23, 162, 184, 0.3);
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Loading States */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: btn-spin 0.8s linear infinite;
+        }
+
+        @keyframes btn-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Focus animations */
+        .focus-glow {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3) !important;
+            transition: box-shadow 0.2s ease;
+        }
+
+        /* Success animations */
+        .success-bounce {
+            animation: successBounce 0.5s ease;
+        }
+
+        @keyframes successBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Error shake animation */
+        .error-shake {
+            animation: errorShake 0.5s ease;
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .auth-form h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .auth-submit-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .auth-submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .my-urls-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .my-urls-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .urls-list {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .url-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .url-info {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .url-info h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .url-info p {
+            margin: 4px 0;
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .url-info p strong {
+            color: #333;
+        }
+
+        .url-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .url-action-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .url-action-btn:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .main {
+                padding: 30px 20px;
+            }
+
+            .custom-code-group, .bulk-upload {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .url-display {
+                flex-direction: column;
+            }
+
+            .short-url {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+
+            .result p {
+                font-size: 14px;
+            }
+
+            #originalUrlDisplay {
+                font-size: 10px;
+                word-break: break-all;
+                line-height: 1.2;
+                padding: 6px;
+                overflow-wrap: anywhere;
+                hyphens: auto;
+            }
+
+            .bulk-result {
+                padding: 15px;
+            }
+
+            .bulk-result li {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .url-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .url-info {
+                margin-bottom: 10px;
+            }
+
+            .url-actions {
+                align-self: stretch;
+                justify-content: flex-end;
+            }
+
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 TinyURL</h1>
+            <p>Shorten your long URLs instantly</p>
+            <div class="auth-section" id="authSection">
+                <button class="auth-btn" id="loginBtn">Login</button>
+                <button class="auth-btn" id="signupBtn">Sign Up</button>
+            </div>
+            <div class="user-section hidden" id="userSection">
+                <span class="welcome-text" id="welcomeText">Welcome back!</span>
+                <div class="user-menu">
+                    <button class="auth-btn" id="profileBtn">Profile</button>
+                    <button class="auth-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+            <form id="shortenForm">
+                <div class="form-group">
+                    <label for="originalUrl">Enter your long URL:</label>
+                    <input type="url" id="originalUrl" placeholder="https://example.com/very/long/url" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="custom-code-group">
+                        <div class="custom-code-input">
+                            <label for="customCode">Custom short code (optional):</label>
+                            <input type="text" id="customCode" placeholder="my-custom-code" maxlength="10" disabled>
+                        </div>
+                        <button type="button" class="toggle-custom" id="toggleCustom">Enable Custom</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="advanced-section">
+                    <button type="button" class="toggle-advanced" id="toggleAdvanced">⚙️ Advanced Options</button>
+                    
+                    <div class="advanced-options hidden" id="advancedOptions">
+                        <div class="form-group">
+                            <label for="expiresIn">Link Expiration (optional):</label>
+                            <select id="expiresIn">
+                                <option value="">Never expires</option>
+                                <option value="1 hour">1 Hour</option>
+                                <option value="1 day">1 Day</option>
+                                <option value="1 week">1 Week</option>
+                                <option value="1 month">1 Month</option>
+                                <option value="custom">Custom Date</option>
+                            </select>
+                            <input type="datetime-local" id="customExpiration" class="hidden" style="margin-top: 10px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password Protection (optional):</label>
+                            <input type="password" id="password" placeholder="Enter password to protect this URL" minlength="4">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="shorten-btn" id="shortenBtn">
+                    Shorten URL
+                </button>
+            </form>
+
+            <!-- Bulk Upload Section -->
+            <div class="bulk-section" id="bulkSection">
+                <h3>📁 Bulk URL Shortening</h3>
+                <p>Upload a CSV file with URLs to shorten multiple links at once. <strong>Login required.</strong></p>
+                
+                <div class="bulk-upload" id="bulkUpload">
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                    <button type="button" class="bulk-btn" id="selectFileBtn">Select CSV File</button>
+                    <button type="button" class="bulk-btn" id="uploadBtn" disabled>Upload & Process</button>
+                </div>
+                
+                <div class="bulk-info">
+                    <p><strong>CSV Format:</strong></p>
+                    <ul>
+                        <li><strong>url</strong> (required) - The URL to shorten</li>
+                        <li><strong>customCode</strong> (optional) - Custom short code</li>
+                        <li><strong>expiresIn</strong> (optional) - Expiration (e.g., "1 day", "2 weeks")</li>
+                        <li><strong>password</strong> (optional) - Password protection</li>
+                    </ul>
+                    <button type="button" class="download-template" id="downloadTemplate">Download CSV Template</button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Creating your short URL...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result" id="result">
+                <h3>Your short URL is ready! 🎉</h3>
+                <div class="url-display">
+                    <input type="text" class="short-url" id="shortUrl" readonly>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+                <p>
+                    <strong>Original URL:</strong><br>
+                    <span id="originalUrlDisplay"></span><br>
+                    <strong>Created:</strong> <span id="createdAt"></span><br>
+                    <span id="expirationInfo"></span>
+                    <span id="passwordInfo"></span><br>
+                    <a href="#" class="stats-link" id="statsLink">View Statistics</a>
+                </p>
+            </div>
+
+            <div class="bulk-result" id="bulkResult">
+                <h3>Bulk Upload Results</h3>
+                <div id="bulkResultContent"></div>
+            </div>
+
+            <!-- My URLs Section (for authenticated users) -->
+            <div class="my-urls-section hidden" id="myUrlsSection">
+                <h3>My URLs</h3>
+                <div class="urls-list" id="urlsList">
+                    <!-- URLs will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Auth Modal -->
+    <div class="modal hidden" id="authModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <h2>Login to Your Account</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-submit-btn">Login</button>
+                </form>
+                <p class="auth-switch">
+                    Don't have an account? 
+                    <a href="#" id="switchToSignup">Sign up here</a>
+                </p>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="auth-form hidden" id="signupForm">
+                <h2>Create New Account</h2>
+                <form id="signupFormElement">
+                    <div class="form-group">
+                        <label for="signupUsername">Username:</label>
+                        <input type="text" id="signupUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email:</label>
+                        <input type="email" id="signupEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password:</label>
+                        <input type="password" id="signupPassword" required minlength="6">
+                    </div>
+                    <button type="submit" class="auth-submit-btn">Sign Up</button>
+                </form>
+                <p class="auth-switch">
+                    Already have an account? 
+                    <a href="#" id="switchToLogin">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('shortenForm');
+        const originalUrlInput = document.getElementById('originalUrl');
+        const customCodeInput = document.getElementById('customCode');
+        const toggleCustomBtn = document.getElementById('toggleCustom');
+        const toggleAdvancedBtn = document.getElementById('toggleAdvanced');
+        const advancedOptions = document.getElementById('advancedOptions');
+        const expiresInSelect = document.getElementById('expiresIn');
+        const customExpirationInput = document.getElementById('customExpiration');
+        const passwordInput = document.getElementById('password');
+        const shortenBtn = document.getElementById('shortenBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const result = document.getElementById('result');
+        const bulkResult = document.getElementById('bulkResult');
+        const shortUrlInput = document.getElementById('shortUrl');
+        const copyBtn = document.getElementById('copyBtn');
+        const originalUrlDisplay = document.getElementById('originalUrlDisplay');
+        const createdAtDisplay = document.getElementById('createdAt');
+        const expirationInfo = document.getElementById('expirationInfo');
+        const passwordInfo = document.getElementById('passwordInfo');
+        const statsLink = document.getElementById('statsLink');
+
+        // Bulk upload elements
+        const csvFileInput = document.getElementById('csvFile');
+        const selectFileBtn = document.getElementById('selectFileBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const downloadTemplateBtn = document.getElementById('downloadTemplate');
+        const bulkResultContent = document.getElementById('bulkResultContent');
+
+        // Auth elements
+        const authSection = document.getElementById('authSection');
+        const userSection = document.getElementById('userSection');
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const welcomeText = document.getElementById('welcomeText');
+        const authModal = document.getElementById('authModal');
+        const closeModal = document.getElementById('closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const loginFormElement = document.getElementById('loginFormElement');
+        const signupFormElement = document.getElementById('signupFormElement');
+        const switchToSignup = document.getElementById('switchToSignup');
+        const switchToLogin = document.getElementById('switchToLogin');
+        const myUrlsSection = document.getElementById('myUrlsSection');
+        const urlsList = document.getElementById('urlsList');
+
+        let customEnabled = false;
+        let advancedEnabled = false;
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+
+        // Toast Notification System
+        function showToast(type, title, message, duration = 4000) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="closeToast(this)">×</button>
+                <div class="toast-progress"></div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Auto remove
+            setTimeout(() => {
+                closeToast(toast.querySelector('.toast-close'));
+            }, duration);
+            
+            return toast;
+        }
+
+        function closeToast(closeBtn) {
+            const toast = closeBtn.parentElement;
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 300);
+        }
+
+        // Enhanced utility functions with animations
+        function showLoading(show, button = shortenBtn, text = 'Creating...') {
+            if (show) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                button.dataset.originalText = button.textContent;
+                button.textContent = text;
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                button.textContent = button.dataset.originalText || 'Shorten URL';
+            }
+            
+            loading.style.display = show ? 'block' : 'none';
+            uploadBtn.disabled = show || !csvFileInput.files[0];
+        }
+
+        function showError(message, element = null) {
+            // Show toast notification
+            showToast('error', 'Error', message, 5000);
+            
+            // Add shake animation to element if provided
+            if (element) {
+                element.classList.add('error-shake');
+                setTimeout(() => element.classList.remove('error-shake'), 500);
+            }
+            
+            // Still show the error div for backwards compatibility
+            error.textContent = message;
+            error.classList.add('show');
+            setTimeout(() => {
+                error.classList.remove('show');
+            }, 5000);
+        }
+
+        function showSuccess(title, message, element = null) {
+            // Show toast notification
+            showToast('success', title, message);
+            
+            // Add success animation to element if provided
+            if (element) {
+                element.classList.add('success-bounce');
+                setTimeout(() => element.classList.remove('success-bounce'), 500);
+            }
+        }
+
+        function addFocusGlow(element) {
+            element.classList.add('focus-glow');
+            setTimeout(() => element.classList.remove('focus-glow'), 2000);
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            if (authToken) {
+                loadUserProfile();
+            }
+            originalUrlInput.focus();
+        });
+
+        // Auth functions
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showUserInterface();
+                    loadMyUrls();
+                    showToast('success', 'Welcome back!', `Hello ${data.user.username}`, 3000);
+                } else {
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    showGuestInterface();
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                localStorage.removeItem('authToken');
+                authToken = null;
+                showGuestInterface();
+                showToast('error', 'Session Error', 'Please login again');
+            }
+        }
+
+        function showUserInterface() {
+            authSection.classList.add('hidden');
+            userSection.classList.remove('hidden');
+            welcomeText.textContent = `Welcome, ${currentUser.username}!`;
+            myUrlsSection.classList.remove('hidden');
+        }
+
+        function showGuestInterface() {
+            authSection.classList.remove('hidden');
+            userSection.classList.add('hidden');
+            myUrlsSection.classList.add('hidden');
+        }
+
+        async function loadMyUrls() {
+            try {
+                const response = await fetch('/api/urls', {
+                    headers: authToken ? {
+                        'Authorization': `Bearer ${authToken}`
+                    } : {}
+                });
+
+                if (response.ok) {
+                    const urls = await response.json();
+                    displayUrls(urls);
+                }
+            } catch (err) {
+                console.error('Error loading URLs:', err);
+            }
+        }
+
+        function displayUrls(urls) {
+            if (urls.length === 0) {
+                urlsList.innerHTML = '<p>No URLs created yet. Create your first short URL above!</p>';
+                return;
+            }
+
+            urlsList.innerHTML = urls.map(url => {
+                let statusInfo = '';
+                if (url.expiresAt) {
+                    const expiry = new Date(url.expiresAt);
+                    const isExpired = expiry < new Date();
+                    statusInfo += `<p><strong>Expires:</strong> ${expiry.toLocaleDateString()} ${isExpired ? '(EXPIRED)' : ''}</p>`;
+                }
+                if (url.hasPassword) {
+                    statusInfo += '<p><strong>🔒 Password Protected</strong></p>';
+                }
+
+                return `
+                    <div class="url-item">
+                        <div class="url-info">
+                            <h4>${window.location.origin}/${url.shortCode}</h4>
+                            <p><strong>Original:</strong> ${url.originalUrl}</p>
+                            <p><strong>Created:</strong> ${new Date(url.createdAt).toLocaleDateString()}</p>
+                            <p><strong>Clicks:</strong> ${url.clicks}</p>
+                            ${statusInfo}
+                        </div>
+                        <div class="url-actions">
+                            ${url.isOwned !== false ? `<button class="url-action-btn" onclick="deleteUrl('${url.shortCode}')">Delete</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteUrl(shortCode) {
+            if (!confirm('Are you sure you want to delete this URL?')) return;
+
+            try {
+                const response = await fetch(`/api/urls/${shortCode}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showToast('success', 'URL Deleted', 'Short URL has been removed successfully');
+                    loadMyUrls();
+                } else {
+                    const data = await response.json();
+                    showError(data.error || 'Failed to delete URL');
+                }
+            } catch (err) {
+                showError('Error deleting URL');
+            }
+        }
+
+        // Toggle custom code input
+        toggleCustomBtn.addEventListener('click', () => {
+            customEnabled = !customEnabled;
+            customCodeInput.disabled = !customEnabled;
+            toggleCustomBtn.textContent = customEnabled ? 'Disable Custom' : 'Enable Custom';
+            toggleCustomBtn.classList.toggle('active', customEnabled);
+            
+            if (customEnabled) {
+                customCodeInput.focus();
+            } else {
+                customCodeInput.value = '';
+            }
+        });
+
+        // Toggle advanced options
+        toggleAdvancedBtn.addEventListener('click', () => {
+            advancedEnabled = !advancedEnabled;
+            advancedOptions.classList.toggle('hidden', !advancedEnabled);
+            toggleAdvancedBtn.classList.toggle('active', advancedEnabled);
+        });
+
+        // Handle expiration select
+        expiresInSelect.addEventListener('change', () => {
+            if (expiresInSelect.value === 'custom') {
+                customExpirationInput.classList.remove('hidden');
+            } else {
+                customExpirationInput.classList.add('hidden');
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const originalUrl = originalUrlInput.value.trim();
+            const customCode = customEnabled ? customCodeInput.value.trim() : '';
+            const expiresIn = expiresInSelect.value === 'custom' ? customExpirationInput.value : expiresInSelect.value;
+            const password = passwordInput.value;
+
+            if (!originalUrl) {
+                showError('Please enter a valid URL', originalUrlInput);
+                addFocusGlow(originalUrlInput);
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+            hideResult();
+
+            try {
+                const response = await fetch('/api/shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                    },
+                    body: JSON.stringify({
+                        url: originalUrl,
+                        customCode: customCode || undefined,
+                        expiresIn: expiresIn || undefined,
+                        password: password || undefined
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Something went wrong');
+                }
+
+                showResult(data);
+                showSuccess('URL Created!', 'Your short URL is ready to use', result);
+                
+                if (currentUser) {
+                    loadMyUrls();
+                }
+
+                // Reset form
+                form.reset();
+                customCodeInput.disabled = true;
+                customEnabled = false;
+                toggleCustomBtn.textContent = 'Enable Custom';
+                toggleCustomBtn.classList.remove('active');
+                
+            } catch (err) {
+                showError(err.message, form);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Bulk upload functionality
+        selectFileBtn.addEventListener('click', () => {
+            if (!authToken) {
+                showError('Please login to use bulk upload feature');
+                return;
+            }
+            csvFileInput.click();
+        });
+
+        csvFileInput.addEventListener('change', () => {
+            const file = csvFileInput.files[0];
+            if (file) {
+                selectFileBtn.textContent = `Selected: ${file.name}`;
+                uploadBtn.disabled = false;
+            } else {
+                selectFileBtn.textContent = 'Select CSV File';
+                uploadBtn.disabled = true;
+            }
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            const file = csvFileInput.files[0];
+            if (!file || !authToken) return;
+
+            const formData = new FormData();
+            formData.append('csvFile', file);
+
+            showLoading(true, uploadBtn, 'Processing...');
+            hideError();
+            hideBulkResult();
+
+            try {
+                const response = await fetch('/api/bulk-shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Bulk upload failed');
+                }
+
+                showBulkResult(data);
+                showToast('success', 'Bulk Upload Complete', `Successfully processed ${data.processed} URLs`);
+                loadMyUrls();
+                
+                // Reset file input
+                csvFileInput.value = '';
+                selectFileBtn.textContent = 'Select CSV File';
+                uploadBtn.disabled = true;
+                
+            } catch (err) {
+                showError(err.message, uploadBtn);
+            } finally {
+                showLoading(false, uploadBtn, 'Upload & Process');
+            }
+        });
+
+        downloadTemplateBtn.addEventListener('click', () => {
+            const csvContent = `url,customCode,expiresIn,password
+https://example.com/page1,custom1,1 week,password123
+https://example.com/page2,,1 month,
+https://example.com/page3,custom3,,secretpass`;
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bulk_urls_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+
+        // Copy to clipboard
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(shortUrlInput.value);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                showToast('success', 'Copied!', 'URL copied to clipboard', 2000);
+                
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                shortUrlInput.select();
+                document.execCommand('copy');
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                showToast('success', 'Copied!', 'URL copied to clipboard', 2000);
+                
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }
+        });
+
+        // Auth event listeners
+        loginBtn.addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+        });
+
+        signupBtn.addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        closeModal.addEventListener('click', () => {
+            authModal.classList.add('hidden');
+        });
+
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                authModal.classList.add('hidden');
+            }
+        });
+
+        switchToSignup.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+        });
+
+        switchToLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showGuestInterface();
+            showToast('info', 'Logged Out', 'You have been successfully logged out');
+        });
+
+        // Auth form submissions
+        loginFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = e.target.querySelector('.auth-submit-btn');
+
+            showLoading(true, submitBtn, 'Logging in...');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                currentUser = data.user;
+                
+                authModal.classList.add('hidden');
+                showUserInterface();
+                loadMyUrls();
+                showSuccess('Welcome Back!', `Hello ${data.user.username}!`);
+                
+            } catch (err) {
+                showError(err.message, loginFormElement);
+            } finally {
+                showLoading(false, submitBtn, 'Login');
+            }
+        });
+
+        signupFormElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const submitBtn = e.target.querySelector('.auth-submit-btn');
+
+            showLoading(true, submitBtn, 'Creating account...');
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                currentUser = data.user;
+                
+                authModal.classList.add('hidden');
+                showUserInterface();
+                loadMyUrls();
+                showSuccess('Account Created!', `Welcome to TinyURL, ${data.user.username}!`);
+                
+            } catch (err) {
+                showError(err.message, signupFormElement);
+            } finally {
+                showLoading(false, submitBtn, 'Sign Up');
+            }
+        });
+
+        // Utility functions
+        function showLoading(show) {
+            loading.style.display = show ? 'block' : 'none';
+            shortenBtn.disabled = show;
+            uploadBtn.disabled = show || !csvFileInput.files[0];
+            shortenBtn.textContent = show ? 'Creating...' : 'Shorten URL';
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('show');
+            setTimeout(() => {
+                error.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideError() {
+            error.classList.remove('show');
+        }
+
+        function showResult(data) {
+            shortUrlInput.value = data.shortUrl;
+            originalUrlDisplay.textContent = data.originalUrl;
+            createdAtDisplay.textContent = new Date(data.createdAt).toLocaleString();
+            
+            // Show expiration info
+            if (data.expiresAt) {
+                expirationInfo.innerHTML = `<br><strong>Expires:</strong> ${new Date(data.expiresAt).toLocaleString()}`;
+            } else {
+                expirationInfo.innerHTML = '';
+            }
+            
+            // Show password info
+            if (data.hasPassword) {
+                passwordInfo.innerHTML = '<br><strong>🔒 Password Protected</strong>';
+            } else {
+                passwordInfo.innerHTML = '';
+            }
+            
+            statsLink.href = `/api/stats/${data.shortCode}`;
+            result.classList.add('show');
+            
+            // Add success animation and focus
+            addFocusGlow(result);
+        }
+
+        function hideResult() {
+            result.classList.remove('show');
+        }
+
+        function showBulkResult(data) {
+            let content = `
+                <h4>✅ Bulk Upload Complete</h4>
+                <p><strong>Processed:</strong> ${data.processed} URLs</p>
+                <p><strong>Errors:</strong> ${data.errors}</p>
+            `;
+            
+            if (data.results && data.results.length > 0) {
+                content += '<h5>Successfully Created URLs:</h5><ul>';
+                data.results.slice(0, 5).forEach(url => {
+                    content += `<li><strong>${url.shortCode}</strong> → ${url.originalUrl}</li>`;
+                });
+                if (data.results.length > 5) {
+                    content += `<li>... and ${data.results.length - 5} more</li>`;
+                }
+                content += '</ul>';
+            }
+            
+            if (data.errors && data.errors.length > 0) {
+                content += '<h5>Errors:</h5><ul>';
+                data.errors.forEach(err => {
+                    content += `<li>Row ${err.row}: ${err.error}</li>`;
+                });
+                content += '</ul>';
+            }
+            
+            bulkResultContent.innerHTML = content;
+            bulkResult.classList.add('show');
+        }
+
+        function hideBulkResult() {
+            bulkResult.classList.remove('show');
+        }
+
+        // Auto-focus on URL input
+        originalUrlInput.focus();
+
+        // Handle Enter key in custom code input
+        customCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
